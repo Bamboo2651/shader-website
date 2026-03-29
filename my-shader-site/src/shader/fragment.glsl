@@ -1,5 +1,6 @@
 uniform float uTime;
 uniform vec2 uResolution;
+uniform vec2 uMouse;
 
 varying vec2 vUv;
 
@@ -39,22 +40,36 @@ float snoise(vec2 v){
 void main(){
     vec2 uv=vUv;
     
-    // ノイズを大きめのスケールで動かす
+    // カーソルとの距離を計算
+    float dist=distance(uv,uMouse);
+    
+    // 距離が近いほど強くなる影響範囲（0.3が半径）
+    float mouseEffect=smoothstep(.3,0.,dist);
+    
+    // ベースのノイズ
     float noise1=snoise(uv*2.5+uTime*.35)*.5+.5;
     float noise2=snoise(uv*5.-uTime*.25+vec2(1.5,.8))*.5+.5;
     float noise3=snoise(uv*1.2+uTime*.15+vec2(3.2,1.4))*.5+.5;
     
-    // 合成してコントラストを強める
-    float wave=noise1*.5+noise2*.3+noise3*.2;
-    wave=pow(wave,1.5);// コントラスト強調
+    // カーソル周辺だけノイズを乱す
+    float distortedNoise=snoise(uv*8.-uTime*.8+uMouse)*.5+.5;
     
-    // 色にマッピング（明暗の差を大きく）
-    vec3 colorA=vec3(.02,.02,.10);// ほぼ黒に近い紺
-    vec3 colorB=vec3(.05,.3,.75);// 青
-    vec3 colorC=vec3(.5,.85,1.);// 明るい水色
+    // ベースノイズとカーソルノイズを合成
+    float wave=noise1*.5+noise2*.3+noise3*.2;
+    wave=mix(wave,distortedNoise,mouseEffect*.8);
+    wave=pow(wave,1.5);
+    
+    // 色にマッピング
+    vec3 colorA=vec3(.02,.02,.10);
+    vec3 colorB=vec3(.05,.3,.75);
+    vec3 colorC=vec3(.5,.85,1.);
+    
+    // カーソル周辺だけ明るくする
+    vec3 colorHighlight=vec3(.8,.95,1.);
     
     vec3 color=mix(colorA,colorB,wave);
     color=mix(color,colorC,smoothstep(.4,.9,wave));
+    color=mix(color,colorHighlight,mouseEffect*.4);
     
     gl_FragColor=vec4(color,1.);
 }
