@@ -1,6 +1,6 @@
 import * as THREE from 'three'
-import vertexShader from './src/shader/vertex.glsl'
-import fragmentShader from './src/shader/fragment.glsl'
+import vertexShader from './shader/vertex.glsl'
+import fragmentShader from './shader/fragment.glsl'
 
 // シーン・カメラ・レンダラーの初期化
 const scene = new THREE.Scene()
